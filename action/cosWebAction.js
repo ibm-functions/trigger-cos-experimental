@@ -133,10 +133,15 @@ async function validateParams(params, valid, expectedParams) {
 
     if (expectedParams) {
         for (let param of expectedParams) {
-            if (!params.hasOwnProperty(param)) {
-                throw new Error(`missing ${param} parameter`);
+            if (param === 'interval') {
+                valid.interval = params.interval || 1;
             }
-            valid[verifiedParam(param)] = params[param];
+            else {
+                if (!params.hasOwnProperty(param)) {
+                    throw new Error(`missing ${param} parameter`);
+                }
+                valid[verifiedParam(param)] = params[param];
+            }
         }
     }
     else {
