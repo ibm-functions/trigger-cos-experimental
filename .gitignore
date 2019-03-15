@@ -1,0 +1,16 @@
+.gradle
+build/
+node_modules/
+.env
+.vscode
+action/*.zip
+action/package.json
+package-lock.json
+
+# Eclipse
+bin/
+**/.project
+.settings/
+.classpath
+.cache-main
+.cache-tests

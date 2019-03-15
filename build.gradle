@@ -1,0 +1,2 @@
+ext.dockerImageName = 'cos-provider'
+apply from: 'gradle/docker.gradle'
