@@ -120,7 +120,7 @@ module.exports = function(logger, triggerDB, redisClient) {
         }
     }
 
-    function fireTrigger(triggerIdentifier) {
+    function fireTrigger(triggerIdentifier, event) {
         var method = 'fireTrigger';
 
         var triggerData = self.triggers[triggerIdentifier];
@@ -134,7 +134,7 @@ module.exports = function(logger, triggerDB, redisClient) {
             var host = 'https://' + self.routerHost;
             var uri = host + '/api/v1/namespaces/' + triggerObj.namespace + '/triggers/' + triggerObj.name;
 
-            postTrigger(triggerData, uri, 0)
+            postTrigger(triggerData, event, uri, 0)
             .then(triggerId => {
                 logger.info(method, 'Trigger', triggerId, 'was successfully fired');
             })
@@ -144,14 +144,15 @@ module.exports = function(logger, triggerDB, redisClient) {
         }
     }
 
-    function postTrigger(triggerData, uri, retryCount) {
+    function postTrigger(triggerData, event, uri, retryCount) {
         var method = 'postTrigger';
 
         return new Promise(function(resolve, reject) {
 
             self.authRequest(triggerData, {
                 method: 'post',
-                uri: uri
+                uri: uri,
+                json: event
             }, function(error, response) {
                 try {
                     var statusCode = !error ? response.statusCode : error.statusCode;
