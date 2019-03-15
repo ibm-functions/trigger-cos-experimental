@@ -174,7 +174,7 @@ module.exports = function(logger, triggerDB, redisClient) {
                                 var timeout = statusCode === 429 && retryCount === 0 ? 60000 : 1000 * Math.pow(retryCount + 1, 2);
                                 logger.info(method, 'attempting to fire trigger again', triggerData.id, 'Retry Count:', (retryCount + 1));
                                 setTimeout(function () {
-                                    postTrigger(triggerData, uri, (retryCount + 1))
+                                    postTrigger(triggerData, event, uri, (retryCount + 1))
                                     .then(triggerId => {
                                         resolve(triggerId);
                                     })
