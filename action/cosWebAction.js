@@ -138,7 +138,7 @@ async function validateParams(params, valid, expectedParams) {
                 valid.interval = params.interval || 1;
             }
             else if (param === 'auth_endpoint') {
-                valid.interval = params.auth_endpoint || 'https://iam.cloud.ibm.com/identity/token';
+                valid.auth_endpoint = params.auth_endpoint || 'https://iam.cloud.ibm.com/identity/token';
             }
             else {
                 if (!params.hasOwnProperty(param)) {
