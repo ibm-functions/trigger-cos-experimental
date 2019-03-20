@@ -70,7 +70,7 @@ $WSK_CLI -i --apihost "$EDGEHOST" action update --kind "$ACTION_RUNTIME_VERSION"
     -a feed true \
     -a provide-api-key true \
     -a description 'Event provider COS feed' \
-    -a parameters '[ {"name":"apikey", "required":true},  {"name":"endpoint", "required":true}, {"name":"bucket", "required":true}, {"name":"interval", "required":false} ]'
+    -a parameters '[ {"name":"apikey", "required":true},  {"name":"endpoint", "required":true}, {"name":"bucket", "required":true}, {"name":"interval", "required":false}, {"name":"auth_endpoint", "required":false} ]'
 
 
 COMMAND=" -i --apihost $EDGEHOST package update --auth $AUTH --shared no cosWeb \

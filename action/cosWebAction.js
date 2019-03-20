@@ -6,8 +6,8 @@ const moment = require('moment');
 const common = require('./lib/common');
 const Database = require('./lib/Database');
 
-const feedParameters = [ 'bucket', 'endpoint', 'apikey', 'interval' ];
-const dbParameters = ['bucket', 's3_endpoint', 's3_apikey', 'interval'];
+const feedParameters = [ 'bucket', 'endpoint', 'apikey', 'interval', 'auth_endpoint' ];
+const dbParameters = ['bucket', 's3_endpoint', 's3_apikey', 'interval', 'auth_endpoint'];
 
 function main(params) {
 
@@ -71,7 +71,8 @@ function main(params) {
                         bucket: doc.bucket,
                         endpoint: doc.s3_endpoint,
                         apikey: doc.s3_apikey,
-                        interval: doc.interval
+                        interval: doc.interval,
+                        auth_endpoint: doc.auth_endpoint
                     },
                     status: {
                         active: doc.status.active,
@@ -136,6 +137,9 @@ async function validateParams(params, valid, expectedParams) {
             if (param === 'interval') {
                 valid.interval = params.interval || 1;
             }
+            else if (param === 'auth_endpoint') {
+                valid.interval = params.auth_endpoint || 'https://iam.cloud.ibm.com/identity/token';
+            }
             else {
                 if (!params.hasOwnProperty(param)) {
                     throw new Error(`missing ${param} parameter`);
@@ -166,7 +170,9 @@ async function validateParams(params, valid, expectedParams) {
 
     const client = require('ibm-cos-sdk').S3;
     const s3 = new client({
-        endpoint: valid.s3_endpoint, apiKeyId: valid.s3_apikey
+        endpoint: valid.s3_endpoint,
+        apiKeyId: valid.s3_apikey,
+        ibmAuthEndpoint: valid.auth_endpoint
     });
 
     try {
@@ -188,6 +194,7 @@ function verifiedParam(param) {
             return 's3_endpoint';
         case 'bucket':
         case 'interval':
+        case 'auth_endpoint':
             return param;
         default:
             throw new Error(`${param} is not an updatable parameter`);

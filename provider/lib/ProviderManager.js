@@ -56,7 +56,8 @@ module.exports = function(logger, triggerDB, redisClient) {
             bucket: newTrigger.bucket,
             interval: newTrigger.interval,
             s3_endpoint: newTrigger.s3_endpoint,
-            s3_apikey: newTrigger.s3_apikey
+            s3_apikey: newTrigger.s3_apikey,
+            auth_endpoint: newTrigger.auth_endpoint
         };
 
          return trigger;
