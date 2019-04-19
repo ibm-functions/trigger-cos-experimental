@@ -42,9 +42,6 @@ function main(params) {
 
             common.verifyTriggerAuth(triggerData, false)
             .then(() => validateParams(params, {}, feedParameters))
-            .catch(err => {
-                return reject(common.sendError(400, `COS trigger feed validation failed`, err.message));
-             })
             .then(validParams => {
                 Object.assign(newTrigger, validParams);
                 return db.getWorkerID(workers);
@@ -101,9 +98,6 @@ function main(params) {
                 originalTrigger = trigger;
                 return validateParams(params, _.pick(originalTrigger, dbParameters));
             })
-            .catch(err => {
-                return reject(common.sendError(400, `COS trigger feed validation failed`, err.message));
-            })
             .then(validParams => {
                 updatedParams = validParams;
                 return db.disableTrigger(triggerID, originalTrigger, 0, 'updating');
@@ -130,58 +124,56 @@ function main(params) {
     }
 }
 
-async function validateParams(params, valid, expectedParams) {
+function validateParams(params, valid, expectedParams) {
 
-    if (expectedParams) {
-        for (let param of expectedParams) {
-            if (param === 'interval') {
-                valid.interval = params.interval || 1;
-            }
-            else if (param === 'auth_endpoint') {
-                valid.auth_endpoint = params.auth_endpoint || 'https://iam.cloud.ibm.com/identity/token';
-            }
-            else {
-                if (!params.hasOwnProperty(param)) {
-                    throw new Error(`missing ${param} parameter`);
+    var error = 'COS trigger feed validation failed';
+    return new Promise(function (resolve, reject) {
+        if (expectedParams) {
+            for (let param of expectedParams) {
+                if (param === 'interval') {
+                    valid.interval = params.interval || 1;
+                } else if (param === 'auth_endpoint') {
+                    valid.auth_endpoint = params.auth_endpoint || 'https://iam.cloud.ibm.com/identity/token';
+                } else {
+                    if (!params.hasOwnProperty(param)) {
+                        return reject(common.sendError(400, error, `missing ${param} parameter`));
+                    }
+                    valid[verifiedParam(param)] = params[param];
                 }
-                valid[verifiedParam(param)] = params[param];
+            }
+        } else {
+            var hasUpdate = false;
+            for (let param in params) {
+                try {
+                    valid[verifiedParam(param)] = params[param];
+                    hasUpdate = true;
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+            if (!hasUpdate) {
+                return reject(common.sendError(400, error,`no updatable parameters were specified`));
             }
         }
-    }
-    else {
-        var hasUpdate = false;
-        for (let param in params) {
-            try {
-                valid[verifiedParam(param)] = params[param];
-                hasUpdate = true;
-            }
-            catch(err) {
-                console.log(err);
-            }
-        }
-        if (!hasUpdate) {
-            throw new Error(`no updatable parameters were specified`);
-        }
-    }
 
-    if (valid.interval < 1 || !Number.isInteger(valid.interval)) {
-        throw new Error(`invalid interval parameter`);
-    }
+        if (valid.interval < 1 || !Number.isInteger(valid.interval)) {
+            return reject(common.sendError(400, error,`invalid interval parameter`));
+        }
 
-    const client = require('ibm-cos-sdk').S3;
-    const s3 = new client({
-        endpoint: valid.s3_endpoint,
-        apiKeyId: valid.s3_apikey,
-        ibmAuthEndpoint: valid.auth_endpoint
+        const client = require('ibm-cos-sdk').S3;
+        const s3 = new client({
+            endpoint: valid.s3_endpoint,
+            apiKeyId: valid.s3_apikey,
+            ibmAuthEndpoint: valid.auth_endpoint
+        });
+
+        s3.listObjects({Bucket: valid.bucket, MaxKeys: 0}).promise()
+        .then(() => resolve(valid))
+        .catch(err => {
+            const message = formatError(err);
+            reject(message);
+        });
     });
-
-    try {
-        await s3.listObjects({ Bucket: valid.bucket, MaxKeys: 0 }).promise();
-        return valid;
-    } catch (err) {
-        const message = formatError(err);
-        throw new Error(message);
-    }
 
 }
 
